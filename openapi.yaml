@@ -1,0 +1,602 @@
+openapi: 3.0.0
+info:
+  title: HoopsHub API
+  description: API for managing basketball teams, players, venues, and matches
+  version: 1.0.0
+servers:
+  - url: http://127.0.0.1:5000
+
+paths:
+  /teams:
+    get:
+      summary: Get a list of teams
+      tags:
+        - team
+      operationId: getAllTeams
+      responses:
+        "200":
+          description: A list of teams
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/team"
+    post:
+      summary: Create a new team
+      tags:
+        - team
+      operationId: createTeam
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/createTeam"
+            example:
+              name: "Warriors"
+              city: "San Francisco"
+      responses:
+        "201":
+          $ref: "#/components/responses/singleTopic"
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "422":
+          $ref: "#/components/responses/unprocessableEntity"
+
+  /teams/{teamId}:
+    parameters:
+      - $ref: '#/components/parameters/teamId'
+    get:
+      summary: Get a team by ID
+      tags:
+        - team
+      operationId: getTeam
+      responses:
+        "200":
+          description: A single team
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/team"
+        "404":
+          description: Team not found
+    put:
+      summary: Update a team by ID
+      tags:
+        - team
+      operationId: updateTeam
+      requestBody:
+        content:
+          application/json:
+           schema:
+              $ref: "#/components/schemas/updateTeam"
+          example:
+              - name: "Kauno Zalgiris"
+              - city: "Kaunas"
+      responses:
+        "200":
+          $ref: "#/components/responses/singleTeam"
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "422":
+          $ref: "#/components/responses/unprocessableEntity"
+    delete:
+      summary: Delete a team by ID
+      tags:
+        - team
+      operationId: deleteTeam
+      responses:
+        "204":
+          description: Team deleted
+        "404":
+          $ref: "#/components/responses/notFound"
+
+  /players:
+    get:
+      summary: Get a list of players
+      tags:
+        - player
+      operationId: getAllPlayers
+      responses:
+        "200":
+          description: A list of players
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/player"
+                example:
+                  - id: 1
+                    name: "Domantas Sabonis"
+                    position: "Center"
+                    height: 208
+                    weight: 108
+                    team_id: 1
+    post:
+      summary: Create a new player
+      tags:
+        - player
+      operationId: createPlayer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/createPlayer"
+      responses:
+        "201":
+          $ref: "#/components/responses/singlePlayer"
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "422":
+          $ref: "#/components/responses/unprocessableEntity"
+
+  /players/{playerId}:
+    parameters:
+            - $ref: '#/components/parameters/playerId'
+    get:
+      summary: Get a player by ID
+      tags:
+        - player
+      operationId: getPlayer
+      responses:
+        "200":
+          $ref: "#/components/responses/singlePlayer"
+        "404":
+          $ref: "#/components/responses/notFound"
+    put:
+      summary: Update a player by ID
+      tags:
+        - player
+      operationId: updatePlayer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/updatePlayer"
+              example:
+                  - id: 1
+                    name: "Domantas Sabonis"
+                    position: "Center"
+                    height: 208
+                    weight: 108
+                    team_id: 1
+      responses:
+        "201":
+          $ref: "#/components/responses/singleTopic"
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "422":
+          $ref: "#/components/responses/unprocessableEntity"
+    delete:
+      summary: Delete a player by ID
+      tags:
+        - player
+      operationId: deletePlayer
+      responses:
+        "204":
+          description: Player deleted
+        "404":
+          description: Player not found
+
+  /venues:
+    get:
+      summary: Get a list of venues
+      tags:
+        - venue
+      operationId: getAllVenues
+      responses:
+        "200":
+          description: A list of venues
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/venue"
+                example:
+                  - id: 1
+                    name: "Zalgirio arena"
+                    capacity: 17500
+    post:
+      summary: Create a new venue
+      tags:
+        - venue
+      operationId: createVenue
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/createVenue"
+              example:
+                - name: "Zalgirio arena"
+                  capacity: 17500
+      responses:
+        "201":
+          $ref: "#/components/responses/singleVenue"
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "422":
+          $ref: "#/components/responses/unprocessableEntity"
+
+  /venues/{venueId}:
+    parameters:
+      - $ref: '#/components/parameters/venueId'
+    get:
+      summary: Get a venue by ID
+      tags:
+        - venue
+      operationId: getVenue
+      responses:
+        "200":
+          $ref: "#/components/responses/singleVenue"
+        "404":
+          $ref: "#/components/responses/notFound"
+    put:
+      summary: Update a venue by ID
+      tags:
+        - venue
+      operationId: updateVenue
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/updateVenue"
+      responses:
+        "200":
+          $ref: "#/components/responses/singleTopic"
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "422":
+          $ref: "#/components/responses/unprocessableEntity"
+    delete:
+      summary: Delete a venue by ID
+      tags:
+        - venue
+      operationId: deleteVenue
+      responses:
+        "204":
+          description: Venue deleted
+        "404":
+          description: Venue not found
+
+  /matches:
+    get:
+      summary: Get a list of matches
+      tags:
+        - match
+      operationId: getAllMatches
+      responses:
+        "200":
+          description: A list of matches
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/match"
+                example:
+                  -id: 1
+                  date: "2024-10-01"
+                  home_team_id: 1
+                  away_team_id: 2
+                  venue_id: 3
+                  home_team_score: 98
+                  away_team_score: 102
+    post:
+      summary: Create a new match
+      tags:
+        - match
+      operationId: createMatch
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/createMatch"
+      responses:
+        "201":
+          $ref: "#/components/responses/singleMatch"
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "422":
+          $ref: "#/components/responses/unprocessableEntity"
+
+  /matches/{matchId}:
+    parameters:
+      - $ref: '#/components/parameters/matchId'
+    get:
+      summary: Get a match by ID
+      tags:
+        - match
+      operationId: getMatch
+      responses:
+        "200":
+          $ref: "#/components/responses/singleMatch"
+        "404":
+          $ref: "#/components/responses/notFound"
+    put:
+      summary: Update a match by ID
+      tags:
+        - match
+      operationId: updateMatch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/updateMatch"
+      responses:
+        "200":
+          $ref: "#/components/responses/singleTopic"
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "422":
+          $ref: "#/components/responses/unprocessableEntity"
+    delete:
+      summary: Delete a match by ID
+      tags:
+        - match
+      operationId: deleteMatch
+      responses:
+        "204":
+          description: Match deleted
+        "404":
+          description: Match not found
+
+components:
+  schemas:
+    team:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        city:
+          type: string
+    createTeam:
+      type: object
+      required:
+        - name
+        - city
+      properties:
+        name:
+          type: string
+          nullable: false
+        city:
+          type: string
+          nullable: false
+    updateTeam:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: false
+        city:
+          type: string
+          nullable: false
+    # Existing schemas
+    player:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        position:
+          type: string
+        height:
+          type: number
+        weight:
+          type: number
+        team_id:
+          type: integer
+    createPlayer:
+      type: object
+      required:
+        - name
+        - position
+        - team_id
+      properties:
+        name:
+          type: string
+          nullable: false
+        position:
+          type: string
+          nullable: false
+        height:
+          type: number
+        weight:
+          type: number
+        team_id:
+          type: integer
+    updatePlayer:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: false
+        position:
+          type: string
+          nullable: false
+        height:
+          type: number
+        weight:
+          type: number
+        team_id:
+          type: integer
+
+    # Add the createVenue schema
+    createVenue:
+      type: object
+      required:
+        - name
+        - location
+        - capacity
+      properties:
+        name:
+          type: string
+          nullable: false
+        location:
+          type: string
+          nullable: false
+        capacity:
+          type: integer
+    updateVenue:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: false
+        location:
+          type: string
+          nullable: false
+        capacity:
+          type: integer
+    # Add the createMatch schema
+    createMatch:
+      type: object
+      required:
+        - date
+        - home_team_id
+        - away_team_id
+        - venue_id
+      properties:
+        date:
+          type: string
+          format: date
+          nullable: false
+        home_team_id:
+          type: integer
+          nullable: false
+        away_team_id:
+          type: integer
+          nullable: false
+        venue_id:
+          type: integer
+          nullable: false
+        home_team_score:
+          type: integer
+          default: 0
+        away_team_score:
+          type: integer
+          default: 0
+    updateMatch:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+          nullable: false
+        home_team_id:
+          type: integer
+          nullable: false
+        away_team_id:
+          type: integer
+          nullable: false
+        venue_id:
+          type: integer
+          nullable: false
+        home_team_score:
+          type: integer
+          default: 0
+        away_team_score:
+          type: integer
+          default: 0
+          problemDetails:
+            type: object
+            properties:
+              type:
+                type: string
+                format: uri
+                description: A URI reference that identifies the problem type.
+              title:
+                type: string
+                description: A short, human-readable summary of the problem type.
+              status:
+                type: integer
+                format: int32
+                description: The HTTP status code applicable to this problem.
+              detail:
+                type: string
+                description: A human-readable explanation specific to this occurrence of the problem.
+              instance:
+                type: string
+                format: uri
+                description: A URI reference that identifies the specific occurrence of the problem.
+              errors:
+                type: object
+                description: A map of detailed errors for every property ([property => error])
+    responses:
+      singleTeam:
+        description: A team
+        content:
+          application/json:
+            schema:
+              type: object
+              items:
+                $ref: "#/components/schemas/team"
+    unprocessableEntity:
+      description: Unprocessable entity response
+      content:
+        application/problem+json:
+          schema:
+            type: object
+            items:
+              $ref: "#components/schemas/problemDetails"
+    badRequest:
+      description: Bad request response
+      notFound:
+        description: Resource was not found
+        parameters:
+          name: teamId
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            description: The unique identifier of the topic
+          playerId:
+            name: playerId
+            in: path
+            required: true
+            schema:
+              type: integer
+              minimum: 1
+              description: The unique identifier of the player
+            venueId:
+              name: venueId
+              in: path
+              required: true
+              schema:
+                type: integer
+                minimum: 1
+                description: The unique identifier of the venue
+              matchId:
+                name: matchId
+                in: path
+                required: true
+                schema:
+                  type: integer
+                  minimum: 1
+                  description: The unique identifier of the match
+    tags:
+      - name: match
+        description: Operations related to matches
+      - name: player
+        description: Operation related to players
+      - name: venue
+        description: Operations related to venues
+      - name: team
+        description: Operations related to teams
+
+
+
