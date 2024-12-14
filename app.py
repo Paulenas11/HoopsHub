@@ -46,6 +46,10 @@ def seed_roles_and_admin():
             db.session.add(admin_user)
             db.session.commit()
 
+@app.route("/")
+def index():
+    return "Hello men!"
+
 # Login Endpoint
 @app.route('/login', methods=['POST'])
 def login():
