@@ -1,8 +1,26 @@
-# models.py (Make sure all your models are defined and imported correctly)
+
 from flask_sqlalchemy import SQLAlchemy
 from extensions import db
 from datetime import datetime
 from sqlalchemy.ext.hybrid import hybrid_property
+from flask_bcrypt import generate_password_hash, check_password_hash
+
+class Role(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), unique=True, nullable=False)
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password_hash = db.Column(db.String(128),nullable=False)
+    role_id = db.Column(db.Integer, db.ForeignKey('role.id'))
+    role = db.relationship('Role',backref=db.backref('users',lazy=True))
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password).decode('utf-8')
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
 
 class Team(db.Model):
     id = db.Column(db.Integer, primary_key=True)

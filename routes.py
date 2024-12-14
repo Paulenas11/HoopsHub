@@ -1,325 +1,261 @@
 from datetime import datetime
 from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from extensions import db
-from sqlalchemy.exc import IntegrityError
-from models import Player, Team, Venue, Match
+from models import Player, Team, Venue, Match, Role, User
+from functools import wraps
 
 main_bp = Blueprint('main', __name__)
 
-# Team routes
+# Utility function for checking roles
+def role_required(required_roles):
+    def wrapper(fn):
+        @wraps(fn)
+        def decorated_view(*args, **kwargs):
+            identity = get_jwt_identity()
+            user = User.query.get(identity)
+            # Ensure user has a role and it is in the allowed roles
+            if not user or not user.role or user.role.name not in required_roles:
+                return jsonify({'error': 'Unauthorized access'}), 403
+            return fn(*args, **kwargs)
+        return decorated_view
+    return wrapper
+
+
+# --- TEAM ROUTES ---
 @main_bp.route('/teams', methods=['POST'])
+@jwt_required()
+@role_required('administrator')
 def create_team():
     data = request.get_json()
-
-    # Validate that required fields exist, are strings, and are not empty
-    if not data:
-        return jsonify({"error": "Request data is missing"}), 422
-
-    # Check that 'name' is a non-empty string
-    if "name" not in data or not isinstance(data["name"], str) or not data["name"].strip():
-        return jsonify({"error": "Name is required and must be a non-empty string"}), 422
-
-    # Check that 'city' is a non-empty string
-    if "city" not in data or not isinstance(data["city"], str) or not data["city"].strip():
-        return jsonify({"error": "City is required and must be a non-empty string"}), 422
-
-    # Create a new team if validations pass
-    new_team = Team(name=data["name"], city=data["city"])
+    if not data or not data.get('name') or not data.get('city'):
+        return jsonify({"error": "Name and City are required"}), 422
+    new_team = Team(name=data['name'], city=data['city'])
     db.session.add(new_team)
-    try:
-        db.session.commit()
-        return jsonify({"message": "Team created"}), 201
-    except IntegrityError:
-        db.session.rollback()
-        return jsonify({"error": "A database integrity error occurred"}), 500
-
+    db.session.commit()
+    return jsonify({"message": "Team created", "id": new_team.id}), 201
 
 @main_bp.route('/teams', methods=['GET'])
 def get_teams():
     teams = Team.query.all()
-    teams_list = [{"id": team.id, "name": team.name, "city": team.city} for team in teams]
-    return jsonify(teams_list)
+    teams_list = [{"id": t.id, "name": t.name, "city": t.city} for t in teams]
+    return jsonify(teams_list), 200
 
 @main_bp.route('/teams/<int:teamId>', methods=['GET'])
 def get_team(teamId):
     team = Team.query.get(teamId)
-    if team:
-        return jsonify({"id": team.id, "name": team.name, "city": team.city}), 200
-    else:
+    if not team:
         return jsonify({'message': 'Team not found'}), 404
+    return jsonify({"id": team.id, "name": team.name, "city": team.city}), 200
 
 @main_bp.route('/teams/<int:teamId>', methods=['PUT'])
+@jwt_required()
+@role_required('administrator')
 def update_team(teamId):
-    data = request.get_json()
-    if not data:
-        return jsonify({"error": "Request data cannot be empty"}), 422
-
     team = Team.query.get(teamId)
-    if team:
-        # Validate 'name' and 'city' fields if they are provided
-        if 'name' in data:
-            if not isinstance(data['name'], str) or not data['name'].strip():
-                return jsonify({"error": "Name must be a non-empty string"}), 422
-            team.name = data['name']
-        if 'city' in data:
-            if not isinstance(data['city'], str) or not data['city'].strip():
-                return jsonify({"error": "City must be a non-empty string"}), 422
-            team.city = data['city']
-
-        db.session.commit()
-        return jsonify({'message': 'Team updated'}), 200
-
-    return jsonify({'message': 'Team not found'}), 404
-
+    if not team:
+        return jsonify({'message': 'Team not found'}), 404
+    data = request.get_json()
+    if 'name' in data:
+        team.name = data['name']
+    if 'city' in data:
+        team.city = data['city']
+    db.session.commit()
+    return jsonify({"message": "Team updated"}), 200
 
 @main_bp.route('/teams/<int:teamId>', methods=['DELETE'])
+@jwt_required()
+@role_required('administrator')
 def delete_team(teamId):
     team = Team.query.get(teamId)
-    if team:
-        db.session.delete(team)
-        db.session.commit()
-        return jsonify({'message': 'Team deleted'}), 204
-    else:
+    if not team:
         return jsonify({'message': 'Team not found'}), 404
+    db.session.delete(team)
+    db.session.commit()
+    return jsonify({"message": "Team deleted"}), 204
 
-# Player routes
+@main_bp.route('/teams/<int:teamId>/players', methods=['GET'])
+def get_players_by_team(teamId):
+    team = Team.query.get(teamId)
+    if not team:
+        return jsonify({'message': 'Team not found'}), 404
+    players = Player.query.filter_by(team_id=teamId).all()
+    players_list = [{"id": p.id, "name": p.name, "position": p.position} for p in players]
+    return jsonify(players_list), 200
+
+@main_bp.route('/teams/<int:teamId>/matches', methods=['GET'])
+def get_matches_by_team(teamId):
+    matches = Match.query.filter((Match.home_team_id == teamId) | (Match.away_team_id == teamId)).all()
+    if not matches:
+        return jsonify({'message': 'No matches found for this team'}), 404
+    matches_list = [
+        {"id": m.id, "date": m.date, "home_team_id": m.home_team_id, "away_team_id": m.away_team_id} for m in matches
+    ]
+    return jsonify(matches_list), 200
+
+# --- PLAYER ROUTES ---
 @main_bp.route('/players', methods=['POST'])
+@jwt_required()
+@role_required(['administrator', 'member'])  # Allow both user (member) and administrator roles
 def create_player():
     data = request.get_json()
-    if not data:
-        return jsonify({"error": "Request data is missing"}), 422
-
-    if "name" not in data or not isinstance(data["name"], str) or not data["name"].strip():
-        return jsonify({"error": "Name is required and must be a non-empty string"}), 422
-    if "position" not in data or not isinstance(data["position"], str) or not data["position"].strip():
-        return jsonify({"error": "Position is required and must be a non-empty string"}), 422
-    if "height" not in data or not isinstance(data["height"], (int, float)) or data["height"] <= 0:
-        return jsonify({"error": "Height is required and must be a positive number"}), 422
-    if "weight" not in data or not isinstance(data["weight"], (int, float)) or data["weight"] <= 0:
-        return jsonify({"error": "Weight is required and must be a positive number"}), 422
-
+    if not data or not data.get('name') or not data.get('position'):
+        return jsonify({"error": "Name and Position are required"}), 422
     new_player = Player(
         name=data['name'],
         position=data['position'],
-        height=data['height'],
-        weight=data['weight'],
+        height=data.get('height', 0),
+        weight=data.get('weight', 0),
         team_id=data.get('team_id')
     )
     db.session.add(new_player)
     db.session.commit()
-    return jsonify({'message': 'New Player created'}), 201
+    return jsonify({"message": "Player created", "id": new_player.id}), 201
 
 @main_bp.route('/players', methods=['GET'])
 def get_players():
     players = Player.query.all()
-    players_list = [{"id": player.id, "name": player.name, "position": player.position, "height": player.height, "weight": player.weight, "team_id": player.team_id} for player in players]
-    return jsonify(players_list)
+    players_list = [{"id": p.id, "name": p.name, "position": p.position, "team_id": p.team_id} for p in players]
+    return jsonify(players_list), 200
 
 @main_bp.route('/players/<int:playerId>', methods=['GET'])
 def get_player(playerId):
     player = Player.query.get(playerId)
-    if player:
-        return jsonify({"id": player.id, "name": player.name, "position": player.position, "height": player.height, "weight": player.weight, "team_id": player.team_id}), 200
-    else:
+    if not player:
         return jsonify({'message': 'Player not found'}), 404
+    return jsonify({"id": player.id, "name": player.name, "position": player.position, "team_id": player.team_id}), 200
 
 @main_bp.route('/players/<int:playerId>', methods=['PUT'])
+@jwt_required()
+@role_required('administrator')
 def update_player(playerId):
-    data = request.get_json()
-    if not data:
-        return jsonify({"error": "Request data cannot be empty"}), 422
-
     player = Player.query.get(playerId)
-    if player:
-        # Validate fields if provided
-        if 'name' in data:
-            if not isinstance(data['name'], str) or not data['name'].strip():
-                return jsonify({"error": "Name must be a non-empty string"}), 422
-            player.name = data['name']
-        if 'position' in data:
-            if not isinstance(data['position'], str) or not data['position'].strip():
-                return jsonify({"error": "Position must be a non-empty string"}), 422
-            player.position = data['position']
-        if 'height' in data:
-            if not isinstance(data['height'], (int, float)) or data['height'] <= 0:
-                return jsonify({"error": "Height must be a positive number"}), 422
-            player.height = data['height']
-        if 'weight' in data:
-            if not isinstance(data['weight'], (int, float)) or data['weight'] <= 0:
-                return jsonify({"error": "Weight must be a positive number"}), 422
-            player.weight = data['weight']
-        if 'team_id' in data:
-            player.team_id = data['team_id']
-
-        db.session.commit()
-        return jsonify({'message': 'Player updated'}), 200
-
-    return jsonify({'message': 'Player not found'}), 404
+    if not player:
+        return jsonify({'message': 'Player not found'}), 404
+    data = request.get_json()
+    if 'name' in data:
+        player.name = data['name']
+    if 'position' in data:
+        player.position = data['position']
+    db.session.commit()
+    return jsonify({"message": "Player updated"}), 200
 
 @main_bp.route('/players/<int:playerId>', methods=['DELETE'])
+@jwt_required()
+@role_required('administrator')
 def delete_player(playerId):
     player = Player.query.get(playerId)
-    if player:
-        db.session.delete(player)
-        db.session.commit()
-        return jsonify({'message': 'Player deleted'}), 204
-    else:
+    if not player:
         return jsonify({'message': 'Player not found'}), 404
+    db.session.delete(player)
+    db.session.commit()
+    return jsonify({"message": "Player deleted"}), 204
 
-# Venue routes
+# --- VENUE ROUTES ---
 @main_bp.route('/venues', methods=['POST'])
+@jwt_required()
+@role_required('administrator')
 def create_venue():
     data = request.get_json()
-    if not data:
-        return jsonify({"error": "Request data is missing"}), 422
-
-    if "name" not in data or not isinstance(data["name"], str) or not data["name"].strip():
-        return jsonify({"error": "Name is required and must be a non-empty string"}), 422
-    if "location" not in data or not isinstance(data["location"], str) or not data["location"].strip():
-        return jsonify({"error": "Location is required and must be a non-empty string"}), 422
-    if "capacity" not in data or not isinstance(data["capacity"], int) or data["capacity"] <= 0:
-        return jsonify({"error": "Capacity is required and must be a positive integer"}), 422
-
-    new_venue = Venue(
-        name=data['name'],
-        location=data['location'],
-        capacity=data['capacity']
-    )
+    if not data or not data.get('name') or not data.get('location'):
+        return jsonify({"error": "Name and Location are required"}), 422
+    new_venue = Venue(name=data['name'], location=data['location'], capacity=data.get('capacity', 0))
     db.session.add(new_venue)
     db.session.commit()
-    return jsonify({'message': 'New Venue created'}), 201
+    return jsonify({"message": "Venue created", "id": new_venue.id}), 201
 
 @main_bp.route('/venues', methods=['GET'])
 def get_venues():
     venues = Venue.query.all()
-    venues_list = [{"id": venue.id, "name": venue.name, "location": venue.location, "capacity": venue.capacity} for venue in venues]
-    return jsonify(venues_list)
+    venues_list = [{"id": v.id, "name": v.name, "location": v.location, "capacity": v.capacity} for v in venues]
+    return jsonify(venues_list), 200
 
 @main_bp.route('/venues/<int:venueId>', methods=['GET'])
 def get_venue(venueId):
     venue = Venue.query.get(venueId)
-    if venue:
-        return jsonify({"id": venue.id, "name": venue.name, "location": venue.location, "capacity": venue.capacity}), 200
-    else:
+    if not venue:
         return jsonify({'message': 'Venue not found'}), 404
+    return jsonify({"id": venue.id, "name": venue.name, "location": venue.location, "capacity": venue.capacity}), 200
 
 @main_bp.route('/venues/<int:venueId>', methods=['PUT'])
+@jwt_required()
+@role_required('administrator')
 def update_venue(venueId):
-    data = request.get_json()
-    if not data:
-        return jsonify({"error": "Request data cannot be empty"}), 422
-
     venue = Venue.query.get(venueId)
-    if venue:
-        # Validate fields if provided
-        if 'name' in data:
-            if not isinstance(data['name'], str) or not data['name'].strip():
-                return jsonify({"error": "Name must be a non-empty string"}), 422
-            venue.name = data['name']
-        if 'location' in data:
-            if not isinstance(data['location'], str) or not data['location'].strip():
-                return jsonify({"error": "Location must be a non-empty string"}), 422
-            venue.location = data['location']
-        if 'capacity' in data:
-            if not isinstance(data['capacity'], int) or data['capacity'] <= 0:
-                return jsonify({"error": "Capacity must be a positive integer"}), 422
-            venue.capacity = data['capacity']
-
-        db.session.commit()
-        return jsonify({'message': 'Venue updated'}), 200
-
-    return jsonify({'message': 'Venue not found'}), 404
+    if not venue:
+        return jsonify({'message': 'Venue not found'}), 404
+    data = request.get_json()
+    if 'name' in data:
+        venue.name = data['name']
+    if 'location' in data:
+        venue.location = data['location']
+    db.session.commit()
+    return jsonify({"message": "Venue updated"}), 200
 
 @main_bp.route('/venues/<int:venueId>', methods=['DELETE'])
+@jwt_required()
+@role_required('administrator')
 def delete_venue(venueId):
     venue = Venue.query.get(venueId)
-    if venue:
-        db.session.delete(venue)
-        db.session.commit()
-        return jsonify({'message': 'Venue deleted'}), 204
-    else:
+    if not venue:
         return jsonify({'message': 'Venue not found'}), 404
+    db.session.delete(venue)
+    db.session.commit()
+    return jsonify({"message": "Venue deleted"}), 204
 
-# Match routes
+# --- MATCH ROUTES ---
 @main_bp.route('/matches', methods=['POST'])
+@jwt_required()
+@role_required('administrator')
 def create_match():
     data = request.get_json()
-    if not data:
-        return jsonify({"error": "Request data is missing"}), 422
-
-    required_fields = ["date", "home_team_id", "away_team_id", "venue_id"]
-    for field in required_fields:
-        if field not in data or data[field] is None:
-            return jsonify({"error": f"{field} is required and cannot be null"}), 422
-
-    if "home_team_score" in data and (not isinstance(data["home_team_score"], int) or data["home_team_score"] < 0):
-        return jsonify({"error": "Home team score must be a non-negative integer"}), 422
-    if "away_team_score" in data and (not isinstance(data["away_team_score"], int) or data["away_team_score"] < 0):
-        return jsonify({"error": "Away team score must be a non-negative integer"}), 422
-
+    if not data or not data.get('date') or not data.get('home_team_id') or not data.get('away_team_id'):
+        return jsonify({"error": "Date, Home Team, and Away Team are required"}), 422
     new_match = Match(
         date=data['date'],
         home_team_id=data['home_team_id'],
         away_team_id=data['away_team_id'],
-        venue_id=data['venue_id'],
+        venue_id=data.get('venue_id'),
         home_team_score=data.get('home_team_score', 0),
         away_team_score=data.get('away_team_score', 0)
     )
     db.session.add(new_match)
     db.session.commit()
-    return jsonify({'message': 'New Match created'}), 201
+    return jsonify({"message": "Match created", "id": new_match.id}), 201
 
 @main_bp.route('/matches', methods=['GET'])
 def get_matches():
     matches = Match.query.all()
-    matches_list = [{"id": match.id, "date": match.date, "home_team_id": match.home_team_id, "away_team_id": match.away_team_id, "venue_id": match.venue_id, "home_team_score": match.home_team_score, "away_team_score": match.away_team_score} for match in matches]
-    return jsonify(matches_list)
+    matches_list = [{"id": m.id, "date": m.date, "home_team_id": m.home_team_id, "away_team_id": m.away_team_id} for m in matches]
+    return jsonify(matches_list), 200
 
 @main_bp.route('/matches/<int:matchId>', methods=['GET'])
 def get_match(matchId):
     match = Match.query.get(matchId)
-    if match:
-        return jsonify({"id": match.id, "date": match.date, "home_team_id": match.home_team_id, "away_team_id": match.away_team_id, "venue_id": match.venue_id, "home_team_score": match.home_team_score, "away_team_score": match.away_team_score}), 200
-    else:
+    if not match:
         return jsonify({'message': 'Match not found'}), 404
+    return jsonify({"id": match.id, "date": match.date, "home_team_id": match.home_team_id, "away_team_id": match.away_team_id}), 200
 
 @main_bp.route('/matches/<int:matchId>', methods=['PUT'])
+@jwt_required()
+@role_required('administrator')
 def update_match(matchId):
-    data = request.get_json()
-    if not data:
-        return jsonify({"error": "Request data cannot be empty"}), 422
-
     match = Match.query.get(matchId)
-    if match:
-        # Validate fields if provided
-        if 'date' in data:
-            match.date = data['date']
-        if 'home_team_id' in data:
-            match.home_team_id = data['home_team_id']
-        if 'away_team_id' in data:
-            match.away_team_id = data['away_team_id']
-        if 'venue_id' in data:
-            match.venue_id = data['venue_id']
-        if 'home_team_score' in data:
-            if not isinstance(data['home_team_score'], int) or data['home_team_score'] < 0:
-                return jsonify({"error": "Home team score must be a non-negative integer"}), 422
-            match.home_team_score = data['home_team_score']
-        if 'away_team_score' in data:
-            if not isinstance(data['away_team_score'], int) or data['away_team_score'] < 0:
-                return jsonify({"error": "Away team score must be a non-negative integer"}), 422
-            match.away_team_score = data['away_team_score']
-
-        db.session.commit()
-        return jsonify({'message': 'Match updated'}), 200
-
-    return jsonify({'message': 'Match not found'}), 404
+    if not match:
+        return jsonify({'message': 'Match not found'}), 404
+    data = request.get_json()
+    if 'date' in data:
+        match.date = data['date']
+    db.session.commit()
+    return jsonify({"message": "Match updated"}), 200
 
 @main_bp.route('/matches/<int:matchId>', methods=['DELETE'])
+@jwt_required()
+@role_required('administrator')
 def delete_match(matchId):
     match = Match.query.get(matchId)
-    if match:
-        db.session.delete(match)
-        db.session.commit()
-        return jsonify({'message': 'Match deleted'}), 204
-    else:
+    if not match:
         return jsonify({'message': 'Match not found'}), 404
+    db.session.delete(match)
+    db.session.commit()
+    return jsonify({"message": "Match deleted"}), 204
