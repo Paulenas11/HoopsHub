@@ -14,6 +14,9 @@ from routes import main_bp
 from models import Role, User
 from extensions import db
 from config import Config
+import pymysql
+pymysql.install_as_MySQLdb()
+
 
 app = Flask(__name__)
 app.config.from_object(Config)
