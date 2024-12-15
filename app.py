@@ -18,7 +18,13 @@ import pymysql
 pymysql.install_as_MySQLdb()
 
 
+
 app = Flask(__name__)
+
+# Set production configurations
+app.config['ENV'] = 'production'
+app.config['DEBUG'] = False
+app.config['TESTING'] = False
 app.config.from_object(Config)
 CORS(app)
 
@@ -137,4 +143,5 @@ def logout():
 
 if __name__ == '__main__':
     seed_roles_and_admin()
+    app.run(host='0.0.0.0', port=5000, debug=False)
     app.run(debug=True)
