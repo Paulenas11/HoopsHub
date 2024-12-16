@@ -1,20 +1,12 @@
 from app import app  # Import your Flask app
 from extensions import db
-from models import Player, PositionEnum
+from sqlalchemy.sql import text
 
 with app.app_context():
-    # Fetch all players
-    players = Player.query.all()
-
-    # Update the position of players to ensure they are valid
-    for player in players:
-        if player.position not in [pos.value for pos in PositionEnum]:
-            # If position is invalid, set it to a default value
-            print(f"Updating player {player.name} with invalid position {player.position}")
-            player.position = PositionEnum.GUARD.value
-            db.session.add(player)
-
-    # Commit the changes to the database
+    # Use raw SQL to update invalid positions
+    db.session.execute(text("UPDATE player SET position='GUARD' WHERE position='Guard'"))
+    db.session.execute(text("UPDATE player SET position='FORWARD' WHERE position='Forward'"))
+    db.session.execute(text("UPDATE player SET position='CENTER' WHERE position='Center'"))
     db.session.commit()
 
-print("All invalid player positions have been updated.")
+print("All player positions have been updated to match the enum values.")

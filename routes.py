@@ -121,7 +121,7 @@ def create_player():
 @main_bp.route('/players', methods=['GET'])
 def get_players():
     players = Player.query.all()
-    players_list = [{"id": p.id, "name": p.name, "position": p.position, "team_id": p.team_id} for p in players]
+    players_list = [{"id": p.id, "name": p.name, "position": p.position.value, "team_id": p.team_id} for p in players]
     return jsonify(players_list), 200
 
 

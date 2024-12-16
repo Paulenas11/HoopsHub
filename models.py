@@ -36,12 +36,11 @@ class PositionEnum(PyEnum):
 class Player(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    position = db.Column(db.String(100), nullable=False)  # Temporarily change to String
+    position = db.Column(db.Enum(PositionEnum), nullable=False)  # Use Enum for positions
     height = db.Column(db.Float, nullable=False)
     weight = db.Column(db.Float, nullable=False)
     team_id = db.Column(db.Integer, db.ForeignKey('team.id'), nullable=True)
     team = db.relationship('Team', backref=db.backref('players', lazy=True))
-
 
 class Venue(db.Model):
     id = db.Column(db.Integer, primary_key=True)
