@@ -79,7 +79,7 @@ def get_players_by_team(teamId):
     if not team:
         return jsonify({'message': 'Team not found'}), 404
     players = Player.query.filter_by(team_id=teamId).all()
-    players_list = [{"id": p.id, "name": p.name, "position": p.position} for p in players]
+    players_list = [{"id": p.id, "name": p.name, "position": p.position.value, "team_id": p.team_id} for p in players]
     return jsonify(players_list), 200
 
 @main_bp.route('/teams/<int:teamId>/matches', methods=['GET'])
