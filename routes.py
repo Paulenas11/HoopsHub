@@ -93,6 +93,7 @@ def get_matches_by_team(teamId):
     return jsonify(matches_list), 200
 
 # --- PLAYER ROUTES ---
+# --- PLAYER ROUTES ---
 @main_bp.route('/players', methods=['POST'])
 @jwt_required()
 @role_required(['administrator', 'member'])  # Allow both user (member) and administrator roles
@@ -117,13 +118,11 @@ def create_player():
     db.session.commit()
     return jsonify({"message": "Player created", "id": new_player.id}), 201
 
-
 @main_bp.route('/players', methods=['GET'])
 def get_players():
     players = Player.query.all()
     players_list = [{"id": p.id, "name": p.name, "position": p.position.value, "team_id": p.team_id} for p in players]
     return jsonify(players_list), 200
-
 
 @main_bp.route('/players/<int:playerId>', methods=['GET'])
 def get_player(playerId):
@@ -133,11 +132,9 @@ def get_player(playerId):
     return jsonify({
         "id": player.id,
         "name": player.name,
-        "position": player.position,
+        "position": player.position.value,  # Ensure .value is used for serialization
         "team_id": player.team_id
     }), 200
-
-
 
 @main_bp.route('/players/<int:playerId>', methods=['PUT'])
 @jwt_required()
@@ -167,7 +164,6 @@ def update_player(playerId):
     db.session.commit()
     return jsonify({"message": "Player updated"}), 200
 
-
 @main_bp.route('/players/<int:playerId>', methods=['DELETE'])
 @jwt_required()
 @role_required('administrator')
@@ -178,6 +174,7 @@ def delete_player(playerId):
     db.session.delete(player)
     db.session.commit()
     return jsonify({"message": "Player deleted"}), 204
+
 
 # --- VENUE ROUTES ---
 @main_bp.route('/venues', methods=['POST'])
