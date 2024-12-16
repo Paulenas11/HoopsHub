@@ -2,7 +2,7 @@ from datetime import datetime
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from extensions import db
-from models import Player, Team, Venue, Match, Role, User
+from models import Player, Team, Venue, Match, Role, User, PositionEnum
 from functools import wraps
 
 main_bp = Blueprint('main', __name__)
@@ -21,19 +21,31 @@ def role_required(required_roles):
         return decorated_view
     return wrapper
 
-
 # --- TEAM ROUTES ---
-@main_bp.route('/teams', methods=['POST'])
+@main_bp.route('/players', methods=['POST'])
 @jwt_required()
-@role_required('administrator')
-def create_team():
+@role_required(['administrator', 'member'])  # Allow both user (member) and administrator roles
+def create_player():
     data = request.get_json()
-    if not data or not data.get('name') or not data.get('city'):
-        return jsonify({"error": "Name and City are required"}), 422
-    new_team = Team(name=data['name'], city=data['city'])
-    db.session.add(new_team)
+
+    # Validate the position
+    valid_positions = [pos.name for pos in PositionEnum]  # Get valid position values (Guard, Forward, Center)
+    if 'position' not in data or data['position'] not in valid_positions:
+        return jsonify({"error": "Valid position (Guard, Forward, Center) is required"}), 422
+
+    # Create new player
+    new_player = Player(
+        name=data['name'],
+        position=data['position'],
+        height=data.get('height', 0),
+        weight=data.get('weight', 0),
+        team_id=data.get('team_id')
+    )
+
+    db.session.add(new_player)
     db.session.commit()
-    return jsonify({"message": "Team created", "id": new_team.id}), 201
+    return jsonify({"message": "Player created", "id": new_player.id}), 201
+
 
 @main_bp.route('/teams', methods=['GET'])
 def get_teams():
@@ -48,20 +60,35 @@ def get_team(teamId):
         return jsonify({'message': 'Team not found'}), 404
     return jsonify({"id": team.id, "name": team.name, "city": team.city}), 200
 
-@main_bp.route('/teams/<int:teamId>', methods=['PUT'])
+
+@main_bp.route('/players/<int:playerId>', methods=['PUT'])
 @jwt_required()
 @role_required('administrator')
-def update_team(teamId):
-    team = Team.query.get(teamId)
-    if not team:
-        return jsonify({'message': 'Team not found'}), 404
+def update_player(playerId):
+    player = Player.query.get(playerId)
+    if not player:
+        return jsonify({'message': 'Player not found'}), 404
+
     data = request.get_json()
+
+    # Validate position
+    if 'position' in data:
+        valid_positions = [pos.name for pos in PositionEnum]
+        if data['position'] not in valid_positions:
+            return jsonify({"error": "Valid position (Guard, Forward, Center) is required"}), 422
+        player.position = data['position']
+
+    # Update other fields
     if 'name' in data:
-        team.name = data['name']
-    if 'city' in data:
-        team.city = data['city']
+        player.name = data['name']
+    if 'height' in data:
+        player.height = data['height']
+    if 'weight' in data:
+        player.weight = data['weight']
+
     db.session.commit()
-    return jsonify({"message": "Team updated"}), 200
+    return jsonify({"message": "Player updated"}), 200
+
 
 @main_bp.route('/teams/<int:teamId>', methods=['DELETE'])
 @jwt_required()
@@ -118,12 +145,19 @@ def get_players():
     players_list = [{"id": p.id, "name": p.name, "position": p.position, "team_id": p.team_id} for p in players]
     return jsonify(players_list), 200
 
+
 @main_bp.route('/players/<int:playerId>', methods=['GET'])
 def get_player(playerId):
     player = Player.query.get(playerId)
     if not player:
         return jsonify({'message': 'Player not found'}), 404
-    return jsonify({"id": player.id, "name": player.name, "position": player.position, "team_id": player.team_id}), 200
+    return jsonify({
+        "id": player.id,
+        "name": player.name,
+        "position": player.position,
+        "team_id": player.team_id
+    }), 200
+
 
 @main_bp.route('/players/<int:playerId>', methods=['PUT'])
 @jwt_required()
