@@ -100,15 +100,25 @@ def get_matches_by_team(teamId):
 def create_player():
     data = request.get_json()
 
+    # Debug print to see the received data
+    print("Received data:", data)
+
     # Validate the position
-    valid_positions = [pos.name for pos in PositionEnum]  # Get valid position values (Guard, Forward, Center)
-    if 'position' not in data or data['position'] not in valid_positions:
+    valid_positions = [pos.name for pos in PositionEnum]  # Get valid position values (GUARD, FORWARD, CENTER)
+    print("Valid positions:", valid_positions)  # Debug print to see valid positions
+
+    # Convert position to uppercase to match enum values
+    position = data.get('position').upper() if 'position' in data else None
+    print("Processed position:", position)  # Debug print to see the processed position
+
+    if position not in valid_positions:
+        print("Invalid position:", position)  # Debug print to see invalid position
         return jsonify({"error": "Valid position (Guard, Forward, Center) is required"}), 422
 
     # Create new player
     new_player = Player(
         name=data['name'],
-        position=data['position'],
+        position=position,  # Store the uppercase position
         height=data.get('height', 0),
         weight=data.get('weight', 0),
         team_id=data.get('team_id')
@@ -117,6 +127,7 @@ def create_player():
     db.session.add(new_player)
     db.session.commit()
     return jsonify({"message": "Player created", "id": new_player.id}), 201
+
 
 @main_bp.route('/players', methods=['GET'])
 def get_players():
@@ -136,6 +147,7 @@ def get_player(playerId):
         "team_id": player.team_id
     }), 200
 
+
 @main_bp.route('/players/<int:playerId>', methods=['PUT'])
 @jwt_required()
 @role_required('administrator')
@@ -145,6 +157,35 @@ def update_player(playerId):
         return jsonify({'message': 'Player not found'}), 404
 
     data = request.get_json()
+
+    # Debug print to see the received data
+    print("Received data:", data)
+
+    # Validate position if provided
+    if 'position' in data:
+        valid_positions = [pos.name for pos in PositionEnum]  # Get valid position values (GUARD, FORWARD, CENTER)
+        print("Valid positions:", valid_positions)  # Debug print to see valid positions
+
+        # Convert position to uppercase to match enum values
+        position = data.get('position').upper()
+        print("Processed position:", position)  # Debug print to see the processed position
+
+        if position not in valid_positions:
+            print("Invalid position:", position)  # Debug print to see invalid position
+            return jsonify({"error": "Valid position (Guard, Forward, Center) is required"}), 422
+
+        player.position = position  # Store the uppercase position
+
+    # Update other fields
+    if 'name' in data:
+        player.name = data['name']
+    if 'height' in data:
+        player.height = data['height']
+    if 'weight' in data:
+        player.weight = data['weight']
+
+    db.session.commit()
+    return jsonify({"message": "Player updated"}), 200
 
     # Validate position
     if 'position' in data:
