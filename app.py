@@ -17,8 +17,6 @@ from config import Config
 import pymysql
 pymysql.install_as_MySQLdb()
 
-
-
 app = Flask(__name__)
 
 # Set production configurations

@@ -4,6 +4,7 @@ from extensions import db
 from datetime import datetime
 from sqlalchemy.ext.hybrid import hybrid_property
 from flask_bcrypt import generate_password_hash, check_password_hash
+from enum import Enum as PyEnum
 
 class Role(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -27,10 +28,15 @@ class Team(db.Model):
     name = db.Column(db.String(100), nullable=False)
     city = db.Column(db.String(100), nullable=False)
 
+class PositionEnum(PyEnum):
+    GUARD = "Guard"
+    FORWARD = "Forward"
+    CENTER = "Center"
+
 class Player(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    position = db.Column(db.String(50), nullable=False)
+    position = db.Column(db.Enum(PositionEnum), nullable=False)  # Use Enum for positions
     height = db.Column(db.Float, nullable=False)
     weight = db.Column(db.Float, nullable=False)
     team_id = db.Column(db.Integer, db.ForeignKey('team.id'), nullable=True)
