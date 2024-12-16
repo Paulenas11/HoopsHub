@@ -72,8 +72,10 @@ def login():
     if user and user.check_password(password):
         access_token = create_access_token(identity=str(user.id))
         refresh_token = create_refresh_token(identity=str(user.id))
-        return jsonify({"access_token": access_token, "refresh_token": refresh_token}), 200
+        role = user.role.name  # Fetch the user's role
+        return jsonify({"access_token": access_token, "refresh_token": refresh_token, "role": role}), 200
     return jsonify({"error": "Invalid credentials"}), 401
+
 
 # Register Endpoint
 @app.route('/register', methods=['POST'])
