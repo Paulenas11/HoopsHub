@@ -1,0 +1,12 @@
+/* YourComponent.css */
+.container {
+    max-width: 64px;
+    margin: 0 auto; /* Center the container */
+}
+
+    .container img {
+        max-width: 64px;
+        height: 64px; /* Maintain aspect ratio */
+        display: block;
+        margin: 0 auto; /* Center the image if necessary */
+    }

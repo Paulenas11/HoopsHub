@@ -1,0 +1,181 @@
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&display=swap');
+
+.main-container {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+}
+
+.sidebar {
+    flex: 1;
+    background-color: #F4F4F4;
+    max-width: 200px;
+    padding: 20px;
+    overflow-y: auto; /* Add scrolling if content exceeds the viewport height */
+}
+
+.content {
+    flex: 3;
+    max-width: 400px;
+    padding: 20px;
+    background-color: #F4F4F4;
+    transition: background-color 0.3s ease-in-out;
+    font-family: 'Oswald', sans-serif;
+    overflow-y: auto; /* Add scrolling if content exceeds the viewport height */
+}
+
+
+    .content:hover {
+        background-color: #E0E0E0;
+    }
+
+    .content h1, .content h2, .content h3 {
+        font-size: 24px;
+        color: #333; /* Dark grey */
+        transition: color 0.3s ease-in-out;
+    }
+
+        .content h1:hover, .content h2:hover, .content h3:hover {
+            color: #555;
+        }
+
+.matches-container, .favorite-list, .team-list {
+    display: grid;
+    grid-template-columns: 1fr; /* Single column for matches */
+    gap: 10px;
+    transition: transform 0.3s ease-in-out;
+}
+
+    .matches-container:hover, .favorite-list:hover, .team-list:hover {
+        transform: scale(1.02);
+    }
+
+.match-card, .favorite-item, .team-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid #6B5B95; /* Deep violet */
+    border-radius: 5px;
+    background-color: #FFF; /* White */
+    transition: box-shadow 0.3s ease-in-out;
+}
+
+    .match-card:hover, .favorite-item:hover, .team-item:hover {
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+.match-info, .team-info {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.team-names, .favorite-names {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.team-name, .favorite-name {
+    font-size: 16px;
+    font-weight: bold;
+    color: #FF6F61; /* Coral orange */
+    transition: color 0.3s ease-in-out;
+}
+
+    .team-name:hover, .favorite-name:hover {
+        color: #6B5B95; /* Deep violet */
+    }
+
+.team-scores, .favorite-scores {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.team-score, .favorite-score {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.add-favorite-btn, .favorite-btn, .remove-btn {
+    background-color: #FF6F61; /* Coral orange */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+    .add-favorite-btn:hover, .favorite-btn:hover, .remove-btn:hover {
+        background-color: #E65C50; /* Darker coral orange */
+    }
+
+.search-input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #CCC;
+    border-radius: 5px;
+    font-family: 'Oswald', sans-serif;
+}
+
+.modal-content {
+    max-height: 400px;
+    overflow-y: scroll;
+    padding: 10px;
+}
+
+
+/* Centered layout for pages without the sidebar */
+.centered-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 20px;
+}
+
+.centered-content {
+    width: 100%;
+    max-width: 800px; /* Set a max width for better readability */
+    padding: 20px;
+    background-color: #F4F4F4; /* Light grey */
+    transition: background-color 0.3s ease-in-out;
+    font-family: 'Oswald', sans-serif;
+}
+
+/* Adjust spacing between team names and scores */
+.team-names {
+    flex: 1;
+    text-align: left;
+    margin-right: 10px; /* Reduced margin */
+}
+
+.team-scores {
+    flex: 0;
+    text-align: right;
+}
+
+/* Media query for screens smaller than 768px */
+@media (max-width: 768px) {
+    .container {
+        grid-template-columns: 1fr; /* Single column layout */
+    }
+
+    .match-card, .favorite-item, .team-item {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 15px;
+    }
+
+    .team-scores, .favorite-scores {
+        align-items: flex-start;
+    }
+
+    /* Adjust spacing for smaller screens */
+    .team-names {
+        margin-right: 5px;
+    }
+}

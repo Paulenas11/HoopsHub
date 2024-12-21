@@ -1,0 +1,91 @@
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&display=swap');
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: #FF6F61; /* Coral orange */
+    color: white;
+    position: relative;
+    font-family: 'Oswald', sans-serif;
+}
+
+    .header h1 {
+        margin: 0;
+        flex-grow: 1;
+        text-align: center;
+    }
+
+.hoops-hub-link {
+    color: white;
+    text-decoration: none;
+}
+
+    .hoops-hub-link:hover {
+        text-decoration: underline;
+    }
+
+.header nav {
+    margin-left: auto;
+    display: flex;
+    gap: 15px; /* Add gap between navigation items */
+}
+
+    .header nav .logout-button {
+        background: none;
+        border: none;
+        color: #fff;
+        cursor: pointer;
+        font-size: 1rem;
+        text-decoration: underline;
+        padding: 0;
+    }
+
+        .header nav .logout-button:hover {
+            text-decoration: underline;
+        }
+
+    .header nav a {
+        color: white;
+        text-decoration: none;
+    }
+
+        .header nav a:hover {
+            text-decoration: underline;
+        }
+
+.hamburger {
+    display: none;
+    flex-direction: column;
+    cursor: pointer;
+}
+
+    .hamburger div {
+        width: 25px;
+        height: 3px;
+        background-color: white;
+        margin: 4px;
+    }
+
+/* Media query for screens smaller than 768px */
+@media (max-width: 768px) {
+    .header nav {
+        display: none;
+        flex-direction: column;
+        background-color: #FF6F61; /* Coral orange */
+        position: absolute;
+        top: 50px;
+        right: 10px;
+        width: 200px;
+        padding: 10px;
+    }
+
+        .header nav.show {
+            display: flex;
+        }
+
+    .hamburger {
+        display: flex;
+    }
+}

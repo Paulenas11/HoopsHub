@@ -1,0 +1,28 @@
+/* Footer.css */
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&display=swap');
+
+footer {
+    background-color: #6B5B95; /* Deep violet */
+    color: white;
+    text-align: center;
+    padding: 15px;
+    position: fixed;
+    width: 100%;
+    bottom: 0;
+    transition: background-color 0.3s ease-in-out;
+    font-family: 'Oswald', sans-serif;
+}
+
+    footer:hover {
+        background-color: #563D7C;
+    }
+
+    footer .footer-item {
+        margin: 0 10px;
+        font-size: 14px;
+        transition: color 0.3s ease-in-out;
+    }
+
+        footer .footer-item:hover {
+            color: #FF6F61; /* Coral orange */
+        }
