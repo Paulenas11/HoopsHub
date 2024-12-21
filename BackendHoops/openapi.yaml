@@ -1,0 +1,710 @@
+openapi: 3.0.0
+info:
+  title: HoopsHub API
+  description: API for managing basketball teams, players, venues, and matches
+  version: 1.0.0
+servers:
+  - url: http://127.0.0.1:5000
+
+paths:
+  /login:
+    post:
+      summary: Log in and get access and refresh tokens
+      tags:
+        - authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+              required:
+                - username
+                - password
+              example:
+                username: testuser
+                password: testpassword
+      responses:
+        "200":
+          description: Tokens generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                  refresh_token:
+                    type: string
+        "401":
+          description: Invalid credentials
+
+  /register:
+    post:
+      summary: Register a new user
+      tags:
+        - authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+              required:
+                - username
+                - password
+              example:
+                username: newuser
+                password: newpassword
+      responses:
+        "201":
+          description: User registered successfully
+        "409":
+          description: Username already exists
+        "422":
+          description: Missing username or password
+
+  /refresh:
+    post:
+      summary: Refresh an expired access token
+      tags:
+        - authentication
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Access token refreshed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+        "401":
+          description: Invalid or missing refresh token
+
+  /logout:
+    post:
+      summary: Log out the user
+      tags:
+        - authentication
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: User logged out successfully
+        "401":
+          description: Unauthorized
+
+  /teams:
+    get:
+      summary: Get a list of teams
+      tags:
+        - team
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: A list of teams
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/team"
+    post:
+      summary: Create a new team
+      tags:
+        - team
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/createTeam"
+      responses:
+        "201":
+          description: Team created successfully
+        "400":
+          description: Bad Request
+        "403":
+          description: Unauthorized access
+        "422":
+          description: Unprocessable Entity
+
+  /teams/{teamId}:
+    get:
+      summary: Get a team by ID
+      tags:
+        - team
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: teamId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The unique identifier of the team
+      responses:
+        "200":
+          description: A single team
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/team"
+        "404":
+          description: Team not found
+    put:
+      summary: Update a team by ID
+      tags:
+        - team
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: teamId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The unique identifier of the team
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/updateTeam"
+      responses:
+        "200":
+          description: Team updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/team"
+        "400":
+          description: Bad Request
+        "404":
+          description: Team not found
+        "422":
+          description: Unprocessable Entity
+    delete:
+      summary: Delete a team by ID
+      tags:
+        - team
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: teamId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The unique identifier of the team
+      responses:
+        "204":
+          description: Team deleted
+        "404":
+          description: Team not found
+        "403":
+          description: Unauthorized access
+
+  /players:
+    get:
+      summary: Get a list of players
+      tags:
+        - player
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: A list of players
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/player"
+    post:
+      summary: Create a new player
+      tags:
+        - player
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/createPlayer"
+      responses:
+        "201":
+          description: Player created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/player"
+        "400":
+          description: Bad Request
+        "403":
+          description: Unauthorized access
+        "422":
+          description: Unprocessable Entity
+
+  /players/{playerId}:
+    get:
+      summary: Get a player by ID
+      tags:
+        - player
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: playerId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The unique identifier of the player
+      responses:
+        "200":
+          description: A single player
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/player"
+        "404":
+          description: Player not found
+    put:
+      summary: Update a player by ID
+      tags:
+        - player
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: playerId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The unique identifier of the player
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/updatePlayer"
+      responses:
+        "200":
+          description: Player updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/player"
+        "400":
+          description: Bad Request
+        "404":
+          description: Player not found
+        "422":
+          description: Unprocessable Entity
+    delete:
+      summary: Delete a player by ID
+      tags:
+        - player
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: playerId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The unique identifier of the player
+      responses:
+        "204":
+          description: Player deleted
+        "404":
+          description: Player not found
+        "403":
+          description: Unauthorized access
+
+  /venues:
+    get:
+      summary: Get a list of venues
+      tags:
+        - venue
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: A list of venues
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/venue"
+    post:
+      summary: Create a new venue
+      tags:
+        - venue
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/createVenue"
+      responses:
+        "201":
+          description: Venue created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/venue"
+        "400":
+          description: Bad Request
+        "403":
+          description: Unauthorized access
+        "422":
+          description: Unprocessable Entity
+
+  /venues/{venueId}:
+    get:
+      summary: Get a venue by ID
+      tags:
+        - venue
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: venueId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The unique identifier of the venue
+      responses:
+        "200":
+          description: A single venue
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/venue"
+        "404":
+          description: Venue not found
+    put:
+      summary: Update a venue by ID
+      tags:
+        - venue
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: venueId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The unique identifier of the venue
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/updateVenue"
+      responses:
+        "200":
+          description: Venue updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/venue"
+        "400":
+          description: Bad Request
+        "404":
+          description: Venue not found
+        "422":
+          description: Unprocessable Entity
+    delete:
+      summary: Delete a venue by ID
+      tags:
+        - venue
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: venueId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The unique identifier of the venue
+      responses:
+        "204":
+          description: Venue deleted
+        "404":
+          description: Venue not found
+        "403":
+          description: Unauthorized access
+
+  /matches:
+    get:
+      summary: Get a list of matches
+      tags:
+        - match
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: A list of matches
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/match"
+    post:
+      summary: Create a new match
+      tags:
+        - match
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/createMatch"
+      responses:
+        "201":
+          description: Match created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/match"
+        "400":
+          description: Bad Request
+        "403":
+          description: Unauthorized access
+        "422":
+          description: Unprocessable Entity
+
+  /matches/{matchId}:
+    get:
+      summary: Get a match by ID
+      tags:
+        - match
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: matchId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The unique identifier of the match
+      responses:
+        "200":
+          description: A single match
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/match"
+        "404":
+          description: Match not found
+    put:
+      summary: Update a match by ID
+      tags:
+        - match
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: matchId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The unique identifier of the match
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/updateMatch"
+      responses:
+        "200":
+          description: Match updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/match"
+        "400":
+          description: Bad Request
+        "404":
+          description: Match not found
+        "422":
+          description: Unprocessable Entity
+    delete:
+      summary: Delete a match by ID
+      tags:
+        - match
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: matchId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The unique identifier of the match
+      responses:
+        "204":
+          description: Match deleted
+        "404":
+          description: Match not found
+        "403":
+          description: Unauthorized access
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    team:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        city:
+          type: string
+    createTeam:
+      type: object
+      required:
+        - name
+        - city
+      properties:
+        name:
+          type: string
+        city:
+          type: string
+    updateTeam:
+      type: object
+      properties:
+        name:
+          type: string
+        city:
+          type: string
+    player:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        position:
+          type: string
+    createPlayer:
+      type: object
+      required:
+        - name
+        - position
+      properties:
+        name:
+          type: string
+        position:
+          type: string
+    updatePlayer:
+      type: object
+      properties:
+        name:
+          type: string
+        position:
+          type: string
+    venue:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        address:
+          type: string
+    createVenue:
+      type: object
+      required:
+        - name
+        - address
+      properties:
+        name:
+          type: string
+        address:
+          type: string
+    updateVenue:
+      type: object
+      properties:
+        name:
+          type: string
+        address:
+          type: string
+          match:
+            type: object
+            properties:
+              id:
+                type: integer
+              date:
+                type: string
+                format: date
+              home_team_id:
+                type: integer
+              away_team_id:
+                type: integer
+              venue_id:
+                type: integer
+              home_team_score:
+                type: integer
+              away_team_score:
+                type: integer
+            createMatch:
+              type: object
+              required:
+                - date
+                - home_team_id
+                - away_team_id
+              properties:
+                date:
+                  type: string
+                  format: date
+                home_team_id:
+                  type: integer
+                away_team_id:
+                  type: integer
+                venue_id:
+                  type: integer
+                home_team_score:
+                  type: integer
+                away_team_score:
+                  type: integer
+            updateMatch:
+              type: object
+              properties:
+                date:
+                  type: string
+                  format: date
+                home_team_score:
+                  type: integer
+                away_team_score:
+                  type: integer
