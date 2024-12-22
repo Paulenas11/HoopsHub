@@ -1,17 +1,17 @@
 # HoopsHub
-##
 - Kauno Technologijos Universiteto, T120B165 Saityno taikomųjų programų projektavimo modulio projektas
 - Darbą atliko: IFK-2 grupės studentas Puidokas Paulius
 - Projekto nuoroda: https://shark-app-l2nyb.ondigitalocean.app/
-## Sistemos paskirtis
+## Sistemos aprašymas
+### Sistemos paskirtis
 - „HoopsHub" tikslas - sukurti centralizuotą platformą, kurioje naudotojai galėtų lengvai pasiekti realaus laiko ir istorinę informaciją apie krepšinio rungtynes žaidėjus ir vietas.
-## Funkciniai reikalavimai
+### Funkciniai reikalavimai
 - Vartotojų registracija ir autentiškumo nustatymas. Vartotojai turi galimybę susikurti paskyras, saugiai prisijungti ir atsijungti. Prieigos kontrolė pagal vaidmenis.
 - Prisijungę vartotojai gali pasirinkti mėgstamiausias komandas.
 - Administratoriai gali laisvai sukurti, redaguoti ir ištrinti bet kurį sistemos objektą.
 - Naudotojai gali peržiūrėti komandas, žaidėjus ir rungtnių vietas.
 - Naudotojai gali peržiūrėti busimų ir praėjusių rungtynių tvarkaraščius.
-## Naudotos technologijos
+### Naudotos technologijos
 - API: Python
 - Duomenų bazė: MySQL Server
 - UI: React.js
@@ -21,9 +21,9 @@
 ## Naudotojo sąsajos projektas
 ### Pagrindinis (Home) lango neprisijungus realizacija
 ![Screenshot](https://github.com/Paulenas11/HoopsHub/blob/main/assets/image1.png?raw=true)
-###Prisijungimo lango realizacija
+### Prisijungimo lango realizacija
 ![Screenshot](https://github.com/Paulenas11/HoopsHub/blob/main/assets/image2.png?raw=true)
-###Registracijos lango realizacija
+### Registracijos lango realizacija
 ![Screenshot](https://github.com/Paulenas11/HoopsHub/blob/main/assets/image3.png?raw=true)
 ### Pagrindinis (Home) lango prisijungus realizacija
 ![Screenshot](https://github.com/Paulenas11/HoopsHub/blob/main/assets/image4.png?raw=true)
