@@ -17,9 +17,26 @@
 - UI: React.js
 - Web Deployment: DigitalOcean
 ## Sistemos architektūra
-![image](https://github.com/Paulenas11/HoopsHub/tree/main/assets/image.png)
+![Screenshot](https://github.com/Paulenas11/HoopsHub/blob/main/assets/image.png?raw=true)
 ## Naudotojo sąsajos projektas
-
+### Pagrindinis (Home) lango neprisijungus realizacija
+![Screenshot](https://github.com/Paulenas11/HoopsHub/blob/main/assets/image1.png?raw=true)
+###Prisijungimo lango realizacija
+![Screenshot](https://github.com/Paulenas11/HoopsHub/blob/main/assets/image2.png?raw=true)
+###Registracijos lango realizacija
+![Screenshot](https://github.com/Paulenas11/HoopsHub/blob/main/assets/image3.png?raw=true)
+### Pagrindinis (Home) lango prisijungus realizacija
+![Screenshot](https://github.com/Paulenas11/HoopsHub/blob/main/assets/image4.png?raw=true)
+### Komandų lango realizacija
+![Screenshot](https://github.com/Paulenas11/HoopsHub/blob/main/assets/image5.png?raw=true)
+### Žaidėjų lango realizacija
+![Screenshot](https://github.com/Paulenas11/HoopsHub/blob/main/assets/image6.png?raw=true)
+### Varžybų vietų lango realizacija
+![Screenshot](https://github.com/Paulenas11/HoopsHub/blob/main/assets/image7.png?raw=true)
+### Mėgstamiausių komandų lango realizacija
+![Screenshot](https://github.com/Paulenas11/HoopsHub/blob/main/assets/image8.png?raw=true)
+### Pridėjimo prie "Favorites" komandų lango realizacija
+![Screenshot](https://github.com/Paulenas11/HoopsHub/blob/main/assets/image9.png?raw=true)
 ## API specifikacija
 Specifikacija patalpinta openapi.yaml faile
 ## Išvados
