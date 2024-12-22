@@ -19,7 +19,10 @@
 ## Sistemos architektūra
 ![Screenshot](https://github.com/Paulenas11/HoopsHub/blob/main/assets/image.png?raw=true)
 ## Naudotojo sąsajos projektas
-### Pagrindinis (Home) lango neprisijungus realizacija
+### Pagrindinis (Home) lango neprisijungus 
+#### Wireframe
+![Screenshot](https://github.com/Paulenas11/HoopsHub/blob/main/assets/image10.png?raw=true)
+#### Realizacija
 ![Screenshot](https://github.com/Paulenas11/HoopsHub/blob/main/assets/image1.png?raw=true)
 ### Prisijungimo lango realizacija
 ![Screenshot](https://github.com/Paulenas11/HoopsHub/blob/main/assets/image2.png?raw=true)
@@ -28,6 +31,9 @@
 ### Pagrindinis (Home) lango prisijungus realizacija
 ![Screenshot](https://github.com/Paulenas11/HoopsHub/blob/main/assets/image4.png?raw=true)
 ### Komandų lango realizacija
+#### Wireframe
+![Screenshot](https://github.com/Paulenas11/HoopsHub/blob/main/assets/image11.png?raw=true)
+#### Realizacija
 ![Screenshot](https://github.com/Paulenas11/HoopsHub/blob/main/assets/image5.png?raw=true)
 ### Žaidėjų lango realizacija
 ![Screenshot](https://github.com/Paulenas11/HoopsHub/blob/main/assets/image6.png?raw=true)
